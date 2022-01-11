@@ -48,7 +48,22 @@ For more details see the source code.
 
 ### Configure kubectl
 
+For testing purposes - define kubeconfig file separate from defaults:
 
+```bash
+export KUBECONFIG=$(pwd)/.kubeconfig
+```
+
+Run the following command to retrieve the access credentials for your cluster and automatically configure kubectl:
+
+```bash
+aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terraform output -raw cluster_name) --profile=pg
+```
+
+Test the command:
+
+```bash
+```
 
 ## ArgoCD 
 
