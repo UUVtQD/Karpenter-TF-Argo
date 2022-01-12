@@ -1,9 +1,9 @@
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
-  version         = "18.0.4"
+  version         = "17.24.0"
   cluster_name    = local.cluster_name
   cluster_version = "1.21"
-  subnet_ids      = module.vpc.private_subnets
+  subnets      = module.vpc.private_subnets
   enable_irsa     = true
 
   tags = {
@@ -14,16 +14,18 @@ module "eks" {
 
   vpc_id = module.vpc.vpc_id
 
-  eks_managed_node_group_defaults = {
-    ami_type       = "AL2_x86_64"
-    disk_size      = 50
-    instance_types = ["t3.small", "t3a.small", "t3.medium", "t3a.medium"]
+  workers_group_defaults = {
+    root_volume_type = "gp2"
   }
-  eks_managed_node_groups = {
-    default_node_group = {
-      desired_size = 1
-    }
-  }
+
+  worker_groups = [
+    {
+      name                          = "karpenter-default-wg"
+      instance_type                 = "t3a.medium"
+      additional_security_group_ids = [aws_security_group.worker_group_mgmt_two.id]
+      asg_desired_capacity          = 1
+    },
+  ]
 }
 
 data "aws_eks_cluster" "cluster" {

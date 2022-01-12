@@ -11,8 +11,11 @@ this repo contains sample code to set up EKS Cluster(link-to-extenal-web-URL), A
   - [Provision the EKS cluster](#provision-the-eks-cluster)
   - [Configure kubectl](#configure-kubectl)
 - [ArgoCD](#argocd)
+  - [Install ArgoCD](#install-argocd)
 - [Karpenter](#karpenter)
-- [Examples](#examples)
+  - [General information](#general-information-1)
+  - [Installation](#installation)
+  - [Examples](#examples)
 - [Credits](#credits)
   - [doctoc usage](#doctoc-usage)
 
@@ -23,7 +26,7 @@ this repo contains sample code to set up EKS Cluster(link-to-extenal-web-URL), A
 ### General information
 I have created a separate AWS profile named `pg` (**p**lay**g**round) for testing purposes only
 
-The [hashicorp/learn-terraform-provision-eks-cluster](https://github.com/hashicorp/learn-terraform-provision-eks-cluster) module was used as a basis.
+The [hashicorp/learn-terraform-provision-eks-cluster](https://github.com/hashicorp/learn-terraform-provision-eks-cluster) module was used as a basis, some code/examples were taken from [terraform-aws-modules/terraform-aws-eks](https://github.com/terraform-aws-modules/terraform-aws-eks)
 
 ### Provision the EKS cluster
 To run this Terraform code the next command was used:
@@ -68,11 +71,88 @@ NAME                                          STATUS   ROLES    AGE     VERSION
 ip-10-0-2-121.eu-central-1.compute.internal   Ready    <none>   5m15s   v1.21.5-eks-bc4871b
 ```
 
-## ArgoCD 
+## ArgoCD
+
+### Install ArgoCD
+
+Install ArgoCD with the next command:
+
+```bash
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+By default, the Argo CD API server is not exposed with an external IP. To access the API server without exposing the service port-forwarding will be used:
+
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+Forwarding from 127.0.0.1:8080 -> 8080
+Forwarding from [::1]:8080 -> 8080
+```
+The API server can then be accessed using the localhost:8080
+
+Retrieve default password using `kubectl`:
+
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+```
+
+LogIn via CLI and change the password:
+
+```bash
+argocd login --username admin localhost:8080
+WARNING: server certificate had error: x509: certificate signed by unknown authority. Proceed insecurely (y/n)? yes
+Password: 
+'admin:login' logged in successfully
+Context 'localhost:8080' updated
+```
+
+Change the password using the command:
+
+```bash
+argocd account update-password
+*** Enter current password: 
+*** Enter new password: 
+*** Confirm new password: 
+Password updated
+Context 'localhost:8080' updated
+```
+
+Test new password: log in into WebUI using `https://locahost:8080` address
 
 ## Karpenter
 
-## Examples
+### General information
+
+### Installation
+We will install the `karpenter` using ArgoCD with `helm` release.
+
+To install karpenter with ArgoCD we need to create an application. There are two ways to do that: via webUI or via `yaml + kubectl`. 
+
+Regardless of method, the next parameters have to be added to the helm manifest:
+
+
+1. IAM role Karpenter needs to assume (connect the `KarpenterController IAM Role` to ServiceAccount)
+    ```yaml
+    - name: "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+      value: arn:aws:iam::373776396355:role/karpenter-controller-karpenter-eks-JXniQCJD
+    ```
+2. Cluster details - EKS cluster name:
+    ```yaml
+    - name: controller.clusterName
+      value: karpenter-eks-JXniQCJD
+    ```
+    can be retrieved via CLI/terraform output command
+3. Cluster details - EKS cluster endpoint:
+    ```yaml
+    - name: controller.clusterEndpoint
+      value: https://E05702F69E8F31AA6E7A2AD14FE3D77E.gr7.eu-central-1.eks.amazonaws.com
+    ```
+    can be retrieved via CLI/terraform output command
+
+For complete example of YAML manifest please see the [karpenter-argo-app.yaml file](./karpenter-argo-app.yaml)  
+
+
+### Examples
 
 ## Credits
 
