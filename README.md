@@ -47,6 +47,8 @@ The presented code creates the next resources:
 
 - versions.tf: sets the Terraform version to at least 0.14. It also sets versions for the providers used in this sample.
 
+- karpenter-iam.tf: policies, roles, and so on for karpenter
+
 For more details see the source code.
 
 ### Configure kubectl
