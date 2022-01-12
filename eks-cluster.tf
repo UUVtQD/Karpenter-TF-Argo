@@ -13,28 +13,15 @@ module "eks" {
 
   vpc_id = module.vpc.vpc_id
 
-  self_managed_node_group_defaults = {
-    instance_type    = "t2.small"
-    root_volume_type = "gp2"
+  eks_managed_node_group_defaults = {
+    ami_type       = "AL2_x86_64"
+    disk_size      = 50
+    instance_types = ["t3.small", "t3a.small", "t3.medium", "t3a.medium"]
   }
-
-  self_managed_node_groups = {
-    worker-group-1 = {
-      instance_type                 = "t2.small"
-      pre_bootstrap_user_data       = "echo foo bar"
-      additional_security_group_ids = [aws_security_group.worker_group_mgmt_one.id]
-      min_size                      = 1
-      max_size                      = 5
-      desired_size                  = 1
-    },
-    worker-group-2 = {
-      instance_type                 = "t2.medium"
-      pre_bootstrap_user_data       = "echo foo bar"
-      additional_security_group_ids = [aws_security_group.worker_group_mgmt_two.id]
-      min_size                      = 0
-      max_size                      = 5
-      desired_size                  = 1
-    },
+  eks_managed_node_groups = {
+    default_node_group = {
+      desired_size = 1
+    }
   }
 }
 

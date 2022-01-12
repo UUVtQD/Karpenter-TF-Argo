@@ -63,6 +63,9 @@ aws eks --region $(terraform output -raw region) update-kubeconfig --name $(terr
 Test the command:
 
 ```bash
+k get nodes
+NAME                                          STATUS   ROLES    AGE     VERSION
+ip-10-0-2-121.eu-central-1.compute.internal   Ready    <none>   5m15s   v1.21.5-eks-bc4871b
 ```
 
 ## ArgoCD 
