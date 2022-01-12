@@ -4,6 +4,7 @@ module "eks" {
   cluster_name    = local.cluster_name
   cluster_version = "1.21"
   subnet_ids      = module.vpc.private_subnets
+  enable_irsa     = true
 
   tags = {
     Environment = "karpenter"
